@@ -1,6 +1,6 @@
 // Erm What The Block Is This (ew_bit)
 use jars::{jar, JarOptionBuilder};
-use std::{error::Error};
+use std::error::Error;
 use serde_json::Value;
 
 fn main() {
