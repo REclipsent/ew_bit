@@ -155,7 +155,6 @@ name = "ew_bit"
 version = "0.1.0"
 dependencies = [
  "jars",
- "serde",
  "serde_json",
 ]
 

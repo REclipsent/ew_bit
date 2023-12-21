@@ -1,38 +1,14 @@
 // Erm What The Block Is This (ew_bit)
 use jars::{jar, JarOptionBuilder};
 use std::{error::Error};
-use serde::Deserialize;
-use serde_json;
-use std::fs::File;
-use std::io::Read;
-
-#[derive(Debug, Deserialize)]
-struct ModInfo {
-    depends: Depends,
-}
-
-#[derive(Debug, Deserialize)]
-struct Depends {
-    minecraft: String,
-}
+use serde_json::Value;
 
 fn main() {
-    let jar_path = "temp";
-    let json_path: String; 
-    
+    let jar_path = "C:\\Data\\ewbit\\Jade-1.20.2-fabric-12.3.0.jar";
+        
     match find_fabric_mod_json(jar_path) {
-        Ok(file_path) => {
-            json_path = file_path;
-        }
-        Err(err) => {
-            eprint!("{}", err);
-            return;
-        }
-    }
-
-    match read_json_file(&json_path) {
-        Ok(content) => {
-
+        Ok(version) => {
+            println!("Mod is for Minecraft Version: {}", version)
         }
         Err(err) => {
             eprint!("{}", err);
@@ -43,27 +19,24 @@ fn main() {
 
 fn find_fabric_mod_json(path: &str) -> Result<String, Box<dyn Error>>  {
     let local_jar = jar(path, JarOptionBuilder::default()).unwrap();
-    
-    for (file_path, _) in local_jar.files {
-        //println!("{}",file_path);
+
+    for (file_path, content) in local_jar.files {
         if file_path == "fabric.mod.json" {
             println!("Found Mod's Config Json File");
-            //print!("{}", content);
-            return Ok(file_path);
+            let content_string = String::from_utf8(content)?;
+            let json_value: Value = serde_json::from_str(&content_string)?;
+
+            println!("{}", content_string);
+
+            let version = if let Some(version) = json_value["depends"]["minecraft"].as_str() {
+                version.to_owned()
+            } else {
+                return Err("Minecraft field not found".into());
+            };
+            //print!("{}", content_string);
+            return Ok(version);
         }
     }
 
     Err("fabric.mod.json not found".into())
-}
-
-fn read_json_file(path: &str) -> Result<ModInfo, Box<dyn Error>> {
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    let mod_info: ModInfo = serde_json::from_str(&contents)?;
-
-    Ok(mod_info)
-
-    //Err("could not find minecraft file version".into())
 }
